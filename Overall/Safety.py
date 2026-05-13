@@ -486,21 +486,23 @@ st.sidebar.title("🔒 Asite Login")
 email = st.sidebar.text_input("Email", "impwatson@gadieltechnologies.com", key="email_input")
 password = st.sidebar.text_input("Password", "Srihari@790$", type="password", key="password_input")
 if st.sidebar.button("Login"):
-    session_id = login_to_asite(email, password)
-    if session_id:
-        st.session_state["session_id"] = session_id
-        st.sidebar.success("✅ Login Successful")
+    with st.spinner("Logging into Asite..."):
+        session_id = login_to_asite(email, password)
+        if session_id:
+            st.session_state["session_id"] = session_id
+            st.sidebar.success("✅ Login Successful")
 
 st.sidebar.title("📂 Project Data")
 project_name = st.sidebar.text_input("Project Name", "Wave Oakwood, Wave City")
 form_name = st.sidebar.text_input("Form Name", "Non Conformity Report")
 if "session_id" in st.session_state and st.sidebar.button("Fetch Data"):
-    header, data, payload = fetch_project_data(st.session_state["session_id"], project_name, form_name)
-    st.json(header)
-    if data:
-        df = process_json_data(data)
-        st.session_state["df"] = df
-        st.dataframe(df)
+    with st.spinner("Fetching project data from Asite..."):
+        header, data, payload = fetch_project_data(st.session_state["session_id"], project_name, form_name)
+        st.json(header)
+        if data:
+            df = process_json_data(data)
+            st.session_state["df"] = df
+            st.dataframe(df)
 
 if st.session_state["df"] is not None:
     df = st.session_state["df"]

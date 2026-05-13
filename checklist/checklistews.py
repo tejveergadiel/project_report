@@ -2947,31 +2947,33 @@ email = st.sidebar.text_input("Email", value=EMAIL_ID if EMAIL_ID else "" , key=
 password = st.sidebar.text_input("Password",  value=PASSWORD if PASSWORD else "" , type="password", key="password_input")
 
 if st.sidebar.button("Initialize and Fetch Data"):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        success = loop.run_until_complete(initialize_and_fetch_data(email, password))
-        if success:
-            st.sidebar.success("Initialization and data fetching completed successfully!")
-        else:
-            st.sidebar.error("Initialization and data fetching failed!")
-    except Exception as e:
-        st.sidebar.error(f"Initialization and data fetching failed: {str(e)}")
-    finally:
-        loop.close()
+    with st.spinner("Initializing and fetching data from Asite..."):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            success = loop.run_until_complete(initialize_and_fetch_data(email, password))
+            if success:
+                st.sidebar.success("Initialization and data fetching completed successfully!")
+            else:
+                st.sidebar.error("Initialization and data fetching failed!")
+        except Exception as e:
+            st.sidebar.error(f"Initialization and data fetching failed: {str(e)}")
+        finally:
+            loop.close()
 
 # Analyze and Display
 st.sidebar.markdown(
-    "<h2 style='color:#000000; margin-bottom:0.4rem;'>Status Analysis</h2>",
+    "<h2>Status Analysis</h2>",
     unsafe_allow_html=True,
 )
 if st.sidebar.button("Analyze and Display Activity Counts"):
-    try:
-        run_analysis_and_display()  # This function already handles the full workflow
-    except Exception as e:
-        logging.error(f"Error during analysis and display: {str(e)}")
-        logging.error(f"Stack trace:\n{traceback.format_exc()}")
-        st.error(f"Error occurred: {str(e)}\nCheck logs for details.")
+    with st.spinner("Analyzing and displaying activity counts..."):
+        try:
+            run_analysis_and_display()  # This function already handles the full workflow
+        except Exception as e:
+            logging.error(f"Error during analysis and display: {str(e)}")
+            logging.error(f"Stack trace:\n{traceback.format_exc()}")
+            st.error(f"Error occurred: {str(e)}\nCheck logs for details.")
 
 st.sidebar.title("📊 Slab Cycle")
 st.session_state.ignore_year = datetime.now().year

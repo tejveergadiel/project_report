@@ -411,7 +411,11 @@ elif not files:
     st.warning("No Excel files found in COS bucket.")
 else:
     if st.session_state.overalldf is not None and not st.session_state.overalldf.empty:
-        st.session_state.overalldf = st.session_state.overalldf.drop_duplicates(subset='Tower Name')
+        dedupe_keys = [col for col in ["Project", "Tower Name"] if col in st.session_state.overalldf.columns]
+        if dedupe_keys:
+            st.session_state.overalldf = st.session_state.overalldf.drop_duplicates(subset=dedupe_keys)
+        else:
+            st.session_state.overalldf = st.session_state.overalldf.drop_duplicates()
         st.session_state.check = True
 
     if st.session_state.get("check") and st.session_state.overalldf is not None and not st.session_state.overalldf.empty:

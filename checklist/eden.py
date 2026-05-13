@@ -2186,18 +2186,19 @@ email = st.sidebar.text_input("Email", value=EMAIL_ID if EMAIL_ID else "" , key=
 password = st.sidebar.text_input("Password",  value=PASSWORD if PASSWORD else "" , type="password", key="password_input")
 
 if st.sidebar.button("Initialize and Fetch Data"):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        success = loop.run_until_complete(initialize_and_fetch_data(email, password))
-        if success:
-            st.sidebar.success("Initialization and data fetching completed successfully!")
-        else:
-            st.sidebar.error("Initialization and data fetching failed!")
-    except Exception as e:
-        st.sidebar.error(f"Initialization and data fetching failed: {str(e)}")
-    finally:
-        loop.close()
+    with st.spinner("Initializing and fetching data from Asite..."):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            success = loop.run_until_complete(initialize_and_fetch_data(email, password))
+            if success:
+                st.sidebar.success("Initialization and data fetching completed successfully!")
+            else:
+                st.sidebar.error("Initialization and data fetching failed!")
+        except Exception as e:
+            st.sidebar.error(f"Initialization and data fetching failed: {str(e)}")
+        finally:
+            loop.close()
 
 # Analyze and Display
 st.sidebar.title("📊 Status Analysis")

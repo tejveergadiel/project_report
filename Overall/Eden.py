@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import json
 import time
+import re
 
 
 
@@ -84,37 +85,75 @@ def generatePrompt(datas, tower):
     return response.json()['results'][0]['generated_text'].strip()
 
 
-eden = []
-
 def get_percentages(exceldatas):
-    
-    count = 0
+    eden = []
+
     towers = ["Tower 4", "Tower 5", "Tower 6", "Tower 7"]
-    rows = [0, 2, 2, 2]
-    columns = ['% Complete-MSP', '% Complete', '% Complete', '% Complete']
+
+    workbook = pd.ExcelFile(exceldatas)
+
+    def _normalize(text):
+        return re.sub(r"[^a-z0-9]+", "", str(text).lower())
+
+    def _find_tower_sheet(tower_name):
+        tower_num = re.search(r"\d+", tower_name)
+        if not tower_num:
+            return None
+        key = f"tower{tower_num.group(0)}"
+
+        # Exact normalized match first, then contains match.
+        for sheet in workbook.sheet_names:
+            if _normalize(sheet) == key:
+                return sheet
+        for sheet in workbook.sheet_names:
+            if key in _normalize(sheet):
+                return sheet
+        return None
+
+    def _find_complete_column(df):
+        cols = [c for c in df.columns if "complete" in str(c).lower()]
+        if not cols:
+            return None
+        # Prefer MSP-specific completion column if available.
+        for c in cols:
+            if "msp" in str(c).lower():
+                return c
+        return cols[0]
+
+    def _to_percent(value):
+        num = float(value)
+        if 0 <= num <= 1:
+            return int(round(num * 100))
+        if 0 <= num <= 100:
+            return int(round(num))
+        raise ValueError(f"Unexpected completion value: {value}")
+
     for i in towers:
         try:
-            datas = pd.read_excel(exceldatas, sheet_name=i, header=1)
-            activity_columns = [col for col in datas.columns if col.startswith('Task Name')]
-            complete_columns = [col for col in datas.columns if col.startswith(columns[count])]
-            selected_columns = complete_columns
-            # st.write(datas.iloc[rows[count]][selected_columns][0])
-            # Aianswer = generatePrompt(datas.head()[selected_columns],i)
-            # json_data = json.loads(Aianswer)
-            # st.write(Aianswer)
-            # st.write(i)
-            # st.write(str(datas.iloc[rows[count]][selected_columns][0]).split(".")[1])
+            sheet_name = _find_tower_sheet(i)
+            if not sheet_name:
+                raise ValueError(f"Sheet not found for {i}. Available sheets: {workbook.sheet_names}")
+
+            datas = pd.read_excel(workbook, sheet_name=sheet_name, header=0)
+            completion_col = _find_complete_column(datas)
+            if not completion_col:
+                raise ValueError(f"No completion column found in {sheet_name}")
+
+            numeric_series = pd.to_numeric(datas[completion_col], errors="coerce").dropna()
+            if numeric_series.empty:
+                raise ValueError(f"No numeric completion values found in {sheet_name}:{completion_col}")
+
+            structure_pct = _to_percent(numeric_series.iloc[0])
             eden.append({
                 "Project":"Eden",
                 "Tower Name":i,
-                "Structure":str(int(datas.iloc[rows[count]][selected_columns][0] * 100))  + "%",
+                "Structure":f"{structure_pct}%",
                 "Finishing":"0%"
             })
-            count += 1
         except Exception as e:
             eden.append({
                 "Project":"Eden",
-                "Tower Name":"Error While Process",
+                "Tower Name":i,
                 "Structure":"Error While Process",
                 "Finishing":"0%"
             })

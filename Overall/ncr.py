@@ -2085,10 +2085,11 @@ st.sidebar.title("🔒 Asite Login")
 email = st.sidebar.text_input("Email", "impwatson@gadieltechnologies.com", key="email_input")
 password = st.sidebar.text_input("Password", "Srihari@790$", type="password", key="password_input")
 if st.sidebar.button("Login", key="login_button"):
-    session_id = login_to_asite(email, password)
-    if session_id:
-        st.session_state["session_id"] = session_id
-        st.sidebar.success("✅ Login Successful")
+    with st.spinner("Logging into Asite..."):
+        session_id = login_to_asite(email, password)
+        if session_id:
+            st.session_state["session_id"] = session_id
+            st.sidebar.success("✅ Login Successful")
 
 # Data Fetch Section (unchanged)
 st.sidebar.title("📂 Project Data")
@@ -2096,15 +2097,16 @@ project_name = st.sidebar.text_input("Project Name", "Wave Oakwood, Wave City", 
 form_name = st.sidebar.text_input("Form Name", "Non Conformity Report", key="form_name_input")
 if "session_id" in st.session_state:
     if st.sidebar.button("Fetch Data", key="fetch_data"):
-        header, data, payload = fetch_project_data(st.session_state["session_id"], project_name, form_name)
-        st.json(header)
-        if data:
-            df = process_json_data(data)
-            st.session_state["ncr_df"] = df.copy()
-            st.session_state["safety_df"] = df.copy()
-            st.session_state["housekeeping_df"] = df.copy()
-            st.dataframe(df)
-            st.success("✅ Data fetched and processed successfully for all report types!")
+        with st.spinner("Fetching project data from Asite..."):
+            header, data, payload = fetch_project_data(st.session_state["session_id"], project_name, form_name)
+            st.json(header)
+            if data:
+                df = process_json_data(data)
+                st.session_state["ncr_df"] = df.copy()
+                st.session_state["safety_df"] = df.copy()
+                st.session_state["housekeeping_df"] = df.copy()
+                st.dataframe(df)
+                st.success("✅ Data fetched and processed successfully for all report types!")
 
 # Report Generation Section
 st.sidebar.title("📋 Combined NCR Report")

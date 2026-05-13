@@ -39,7 +39,7 @@ CHECKLIST_PAGES = {
 }
 
 st.sidebar.markdown(
-    "<h2 style='color:#000000; margin-bottom:0.4rem;'>Checklist Modules</h2>",
+    "<h2>Checklist Modules</h2>",
     unsafe_allow_html=True,
 )
 
