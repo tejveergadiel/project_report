@@ -51,20 +51,21 @@ def inject_checklist_ui() -> None:
         }
 
         .stDownloadButton > button {
-            background: linear-gradient(145deg, #d1d5db, #9ca3af) !important;
-            color: #111827 !important;
-            box-shadow: 0 8px 18px rgba(107, 114, 128, 0.2) !important;
-            border: 1px solid rgba(107, 114, 128, 0.22) !important;
+            background: linear-gradient(145deg, #f8fafc, #dbe4ee) !important;
+            color: #0f172a !important;
+            box-shadow: 0 10px 24px rgba(148, 163, 184, 0.2) !important;
+            border: 1px solid rgba(148, 163, 184, 0.32) !important;
+            border-radius: 14px !important;
         }
 
         .stDownloadButton > button:hover,
         .stDownloadButton > button:focus,
         .stDownloadButton > button:active {
-            background: linear-gradient(145deg, #cbd5e1, #94a3b8) !important;
+            background: linear-gradient(145deg, #eef2f7, #cbd5e1) !important;
             color: #0f172a !important;
-            box-shadow: 0 10px 22px rgba(100, 116, 139, 0.24) !important;
-            border: 1px solid rgba(100, 116, 139, 0.28) !important;
-            transform: translateY(-1px) !important;
+            box-shadow: 0 14px 28px rgba(100, 116, 139, 0.22) !important;
+            border: 1px solid rgba(100, 116, 139, 0.34) !important;
+            transform: translateY(-2px) !important;
         }
 
         .stDownloadButton > button *,
