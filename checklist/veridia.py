@@ -787,37 +787,49 @@ async def GetAllDatas():
     df_external = pd.DataFrame(all_external_data)
     df_lift = pd.DataFrame(all_lift_data)
     df_common_area = pd.DataFrame(all_common_area_finishing)
-    desired_columns = ['activitySeq', 'qiLocationId']
-    if 'statusName' in df_finishing.columns:
-        desired_columns.append('statusName')
-    elif 'statusColor' in df_finishing.columns:
-        desired_columns.append('statusColor')
+
+    def normalize_association_df(df, dataset_name):
+        base_columns = ['activitySeq', 'qiLocationId', 'statusName']
+        if df.empty:
+            safe_log(f"{dataset_name} association data is empty", "warning")
+            return pd.DataFrame(columns=base_columns)
+
+        normalized = df.copy()
         status_mapping = {'#4CAF50': 'Completed', '#4CB0F0': 'Not Started', '#4C0F0': 'Not Started'}
-        df_finishing['statusName'] = df_finishing['statusColor'].map(status_mapping).fillna('Unknown')
-        df_structure['statusName'] = df_structure['statusColor'].map(status_mapping).fillna('Unknown')
-        df_external['statusName'] = df_external['statusColor'].map(status_mapping).fillna('Unknown')
-        df_lift['statusName'] = df_lift['statusColor'].map(status_mapping).fillna('Unknown')
-        df_common_area['statusName'] = df_common_area['statusColor'].map(status_mapping).fillna('Unknown')
-        desired_columns.append('statusName')
-    else:
-        safe_log("Neither statusName nor statusColor found in data!", "error")
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
-    veridia_finishing = df_finishing[desired_columns]
-    veridia_structure = df_structure[desired_columns]
-    veridia_external = df_external[desired_columns]
-    veridia_lift = df_lift[desired_columns]
-    veridia_common_area = df_common_area[desired_columns]
+        if 'statusName' not in normalized.columns:
+            if 'statusColor' in normalized.columns:
+                normalized['statusName'] = normalized['statusColor'].map(status_mapping).fillna('Unknown')
+            else:
+                safe_log(f"{dataset_name} data missing statusName/statusColor; defaulting statusName to Unknown", "warning")
+                normalized['statusName'] = 'Unknown'
 
-    safe_log(f"VERIDIA FINISHING ({', '.join(desired_columns)})")
+        missing_base = [col for col in ['activitySeq', 'qiLocationId'] if col not in normalized.columns]
+        if missing_base:
+            safe_log(
+                f"{dataset_name} data missing required columns {missing_base}. Available columns: {list(normalized.columns)}",
+                "warning"
+            )
+            for col in missing_base:
+                normalized[col] = None
+
+        return normalized[base_columns]
+
+    veridia_finishing = normalize_association_df(df_finishing, "Veridia Finishing")
+    veridia_structure = normalize_association_df(df_structure, "Veridia Structure")
+    veridia_external = normalize_association_df(df_external, "Veridia External Development")
+    veridia_lift = normalize_association_df(df_lift, "Veridia Lift")
+    veridia_common_area = normalize_association_df(df_common_area, "Veridia Common Area Finishing")
+
+    safe_log("VERIDIA FINISHING (activitySeq, qiLocationId, statusName)")
     safe_log(f"Total records: {len(veridia_finishing)}")
-    safe_log(f"VERIDIA STRUCTURE ({', '.join(desired_columns)})")
+    safe_log("VERIDIA STRUCTURE (activitySeq, qiLocationId, statusName)")
     safe_log(f"Total records: {len(veridia_structure)}")
-    safe_log(f"VERIDIA EXTERNAL DEVELOPMENT ({', '.join(desired_columns)})")
+    safe_log("VERIDIA EXTERNAL DEVELOPMENT (activitySeq, qiLocationId, statusName)")
     safe_log(f"Total records: {len(veridia_external)}")
-    safe_log(f"VERIDIA LIFT ({', '.join(desired_columns)})")
+    safe_log("VERIDIA LIFT (activitySeq, qiLocationId, statusName)")
     safe_log(f"Total records: {len(veridia_lift)}")
-    safe_log(f"VERIDIA COMMON AREA FINISHING ({', '.join(desired_columns)})")
+    safe_log("VERIDIA COMMON AREA FINISHING (activitySeq, qiLocationId, statusName)")
     safe_log(f"Total records: {len(veridia_common_area)}")
 
     update_progress(100, "Data fetching completed!")
